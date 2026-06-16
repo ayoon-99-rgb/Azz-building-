@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>إدارة البناية</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--bg:#0a0a0a;--card:#161616;--border:#2a2a2a;--text:#f5f5f5;--muted:#888;--green:#4ade80;--red:#f87171;--yellow:#fbbf24;--blue:#60a5fa}
+html,body{background:var(--bg);color:var(--text);font-family:'Tajawal',sans-serif;min-height:100vh}
+#app{max-width:600px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:#111;border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-title{font-size:16px;font-weight:800}
+.tabs{display:flex;overflow-x:auto;background:#111;border-bottom:1px solid var(--border);scrollbar-width:none;position:sticky;top:49px;z-index:99}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:1;padding:10px 6px;font-size:13px;font-family:'Tajawal',sans-serif;cursor:pointer;border:none;background:transparent;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap;text-align:center}
+.tab.active{color:#fff;border-bottom-color:#fff;font-weight:700}
+.content{flex:1;padding:14px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px}
+.row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)}
+.row:last-child{border-bottom:none}
+.lbl{color:var(--muted);font-size:14px}
+.val{font-size:15px;font-weight:700}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700}
+.bg-green{background:#14532d;color:var(--green)}
+.bg-red{background:#450a0a;color:var(--red)}
+.bg-yellow{background:#451a03;color:var(--yellow)}
+.bg-gray{background:#1f2937;color:var(--muted)}
+.bg-blue{background:#0c1a2e;color:var(--blue)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:8px 14px;border-radius:8px;border:none;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-bottom:8px}
+.btn-green{background:#166534;color:#fff}
+.btn-red{background:#7f1d1d;color:#fff}
+.btn-gray{background:#374151;color:#fff}
+.btn-sm{padding:5px 12px;font-size:13px;width:auto;margin-bottom:0}
+input,select{background:#0f0f0f;border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:15px;padding:10px 12px;width:100%;outline:none;margin-bottom:10px}
+input:focus,select:focus{border-color:#555}
+.field-lbl{font-size:12px;color:var(--muted);margin-bottom:4px}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.stat-box{background:#0f0f0f;border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+.stat-box .num{font-size:22px;font-weight:800}
+.stat-box .lbl2{font-size:11px;color:var(--muted);margin-top:3px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:flex;align-items:flex-end;justify-content:center}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:18px 18px 0 0;width:100%;max-width:600px;padding:20px;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:16px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.close-btn{background:none;border:none;color:var(--muted);font-size:26px;cursor:pointer;line-height:1}
+.empty{text-align:center;color:var(--muted);padding:40px;font-size:15px}
+.unit-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:6px}
+.unit-btn{background:#0f0f0f;border:1px solid var(--border);border-radius:8px;padding:10px 4px;text-align:center;cursor:pointer}
+.unit-btn .unum{font-size:15px;font-weight:800}
+.unit-btn .ulbl{font-size:10px;color:var(--muted);margin-top:3px}
+.unit-btn.occupied{border-color:#166534;background:#052e16}
+.unit-btn.late{border-color:#7f1d1d;background:#2d0a0a}
+.unit-btn.expiring{border-color:#92400e;background:#2d1f00}
+.floor-hdr{font-size:11px;font-weight:700;color:var(--muted);padding:8px 2px 4px;letter-spacing:.5px}
+.alert{border-radius:10px;padding:10px 13px;margin-bottom:10px;font-size:13px;line-height:1.5}
+.alert-red{background:#2d0a0a;border:1px solid #7f1d1d;color:var(--red)}
+.alert-yellow{background:#2d1f00;border:1px solid #92400e;color:var(--yellow)}
+.alert-green{background:#052e16;border:1px solid #166534;color:var(--green)}
+.month-scroll{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-bottom:12px}
+.month-scroll::-webkit-scrollbar{display:none}
+.mbtn{flex:0 0 auto;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Tajawal',sans-serif;font-size:13px;cursor:pointer}
+.mbtn.active{background:#fff;color:#000;border-color:#fff;font-weight:700}
+select option{background:#161616}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyA87KJ4bi5Gd-ccU_VFuckmhl1Xq_j73F8",
+  authDomain:"building-5ec84.firebaseapp.com",
+  projectId:"building-5ec84",
+  storageBucket:"building-5ec84.firebasestorage.app",
+  messagingSenderId:"294424447302",
+  appId:"1:294424447302:web:3a64271ad8440dfa167d47"
+});
+var db = firebase.firestore();
+
+// ─── CONFIG ───
+var FLOORS=8, UPF=5, CUR="ر.ع";
+var MONTHS=["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+
+// ─── STATE ───
+var S={tab:"home",modal:null,units:{},hist:{},mk:mkNow()};
+
+function mkNow(){var n=new Date();return n.getFullYear()+"-"+pad(n.getMonth()+1);}
+function pad(n){return String(n).padStart(2,"0");}
+function fmt(n){return Number(n||0).toLocaleString();}
+function fd(s){if(!s)return"—";var d=new Date(s);return isNaN(d)?"—":d.toLocaleDateString("en-GB");}
+function today(){return new Date().toISOString().split("T")[0];}
+function uid2(){return Date.now().toString(36)+Math.random().toString(36).substr(2,4);}
+function allIds(){var a=[];for(var f=1;f<=FLOORS;f++)for(var u=1;u<=UPF;u++)a.push(f+""+u);return a;}
+function mkLabel(mk){var p=mk.split("-");return MONTHS[parseInt(p[1])-1]+" "+p[0];}
+function diffDays(s){return Math.ceil((new Date(s)-new Date())/86400000);}
+
+// ─── FIRESTORE ───
+async function loadData(){
+  try{
+    var us=await db.collection("units").get();
+    us.forEach(d=>{S.units[d.id]=d.data();});
+    var hs=await db.collection("hist").get();
+    hs.forEach(d=>{S.hist[d.id]=d.data().contracts||[];});
+  }catch(e){console.warn(e);}
+  allIds().forEach(id=>{if(!S.units[id])S.units[id]={id,status:"vacant",tenant:"",rent:0,start:"",end:""};});
+  render();
+}
+async function saveUnit(u){S.units[u.id]=u;try{await db.collection("units").doc(u.id).set(u);}catch(e){}render();}
+async function saveHist(id,cs){S.hist[id]=cs;try{await db.collection("hist").doc(id).set({contracts:cs});}catch(e){}render();}
+
+// ─── HELPERS ───
+function getUnit(id){return S.units[id]||{id,status:"vacant",tenant:"",rent:0};}
+function getContracts(id){return S.hist[id]||[];}
+function getActive(id){var cs=getContracts(id);return cs.length?cs[cs.length-1]:null;}
+function computeStatus(u){
+  if(u.status==="vacant")return"vacant";
+  var ct=getActive(u.id);
+  if(!ct)return"vacant";
+  var diff=ct.end?diffDays(ct.end):999;
+  // check payment
+  var paid=(ct.payments||[]).some(p=>p.mk===S.mk&&p.status==="paid");
+  var p=ct.dueDay||1,mk=S.mk.split("-"),due=new Date(parseInt(mk[0]),parseInt(mk[1])-1,p);
+  if(!paid&&new Date()>due)return"late";
+  if(diff<0)return"late";
+  if(diff<=30)return"expiring";
+  return"occupied";
+}
+
+// ─── RENDER ───
+function h(tag,props){
+  var el=document.createElement(tag);
+  if(props)Object.entries(props).forEach(([k,v])=>{
+    if(k==="cls")el.className=v;
+    else if(k==="style"&&typeof v==="object")Object.assign(el.style,v);
+    else if(k[0]==="o"&&k[1]==="n")el.addEventListener(k.slice(2).toLowerCase(),v);
+    else if(k==="html")el.innerHTML=v;
+    else el.setAttribute(k,v);
+  });
+  for(var i=2;i<arguments.length;i++){
+    var c=arguments[i];
+    if(c==null)continue;
+    if(Array.isArray(c)){c.forEach(x=>{if(x!=null)el.appendChild(typeof x==="string"?document.createTextNode(x):x);});}
+    else el.appendChild(typeof c==="string"||typeof c==="number"?document.createTextNode(String(c)):c);
+  }
+  return el;
+}
+function set(p){Object.assign(S,p);render();}
+
+function render(){
+  var app=document.getElementById("app");
+  app.innerHTML="";
+  app.appendChild(rTopbar());
+  app.appendChild(rTabs());
+  var c=h("div",{cls:"content"});
+  c.appendChild(rPage());
+  app.appendChild(c);
+  if(S.modal)app.appendChild(rModal());
+}
+
+function rTopbar(){
+  return h("div",{cls:"topbar"},
+    h("div",{cls:"topbar-title"},"🏢 البناية"),
+    h("button",{cls:"btn btn-green btn-sm",onClick:()=>set({modal:{type:"addContract"}})},"+  عقد جديد")
+  );
+}
+
+function rTabs(){
+  var bar=h("div",{cls:"tabs"});
+  [{id:"home",l:"🏠 الرئيسية"},{id:"building",l:"🏗️ البناية"},{id:"contracts",l:"📋 العقود"},{id:"payments",l:"💰 الإيجارات"},{id:"report",l:"📊 التقرير"}]
+    .forEach(t=>bar.appendChild(h("button",{cls:"tab"+(S.tab===t.id?" active":""),onClick:()=>set({tab:t.id,modal:null})},t.l)));
+  return bar;
+}
+
+function rPage(){
+  if(S.tab==="home")return rHome();
+  if(S.tab==="building")return rBuilding();
+  if(S.tab==="contracts")return rContracts();
+  if(S.tab==="payments")return rPayments();
+  if(S.tab==="report")return rReport();
+  return h("div",{cls:"empty"},"قريباً");
+}
+
+// ─── HOME ───
+function rHome(){
+  var w=h("div",{});
+  var units=Object.values(S.units);
+  var occ=units.filter(u=>computeStatus(u)!=="vacant");
+  var late=units.filter(u=>computeStatus(u)==="late");
+  var exp=units.filter(u=>computeStatus(u)==="expiring");
+  var paid=occ.filter(u=>{var ct=getActive(u.id);return ct&&(ct.payments||[]).some(p=>p.mk===S.mk&&p.status==="paid");});
+  var paidAmt=paid.reduce((s,u)=>s+(u.rent||0),0);
+  var totalRent=occ.reduce((s,u)=>s+(u.rent||0),0);
+
+  w.appendChild(h("div",{cls:"card"},
+    h("div",{style:{fontWeight:"800",fontSize:"15px",marginBottom:"12px"}},mkLabel(S.mk)+" — ملخص"),
+    h("div",{cls:"stat-grid"},
+      h("div",{cls:"stat-box"},h("div",{cls:"num",style:{color:"var(--green)"}},String(occ.length)),h("div",{cls:"lbl2"},"مؤجر")),
+      h("div",{cls:"stat-box"},h("div",{cls:"num",style:{color:"var(--muted)"}},String(FLOORS*UPF-occ.length)),h("div",{cls:"lbl2"},"شاغر")),
+      h("div",{cls:"stat-box"},h("div",{cls:"num",style:{color:"var(--green)"}},fmt(paidAmt)),h("div",{cls:"lbl2"},"محصّل "+CUR)),
+      h("div",{cls:"stat-box"},h("div",{cls:"num",style:{color:"var(--red)"}},fmt(totalRent-paidAmt)),h("div",{cls:"lbl2"},"متبقي "+CUR))
+    )
+  ));
+
+  if(late.length)w.appendChild(h("div",{cls:"alert alert-red"},`⚠️ ${late.length} شقة متأخرة في الإيجار`));
+  if(exp.length)w.appendChild(h("div",{cls:"alert alert-yellow"},`📋 ${exp.length} عقد ينتهي خلال 30 يوم`));
+  if(!late.length&&!exp.length)w.appendChild(h("div",{cls:"alert alert-green"},"✅ لا توجد تنبيهات"));
+
+  return w;
+}
+
+// ─── BUILDING ───
+function rBuilding(){
+  var w=h("div",{});
+  for(var f=FLOORS;f>=1;f--){
+    var ids=[];for(var u=1;u<=UPF;u++)ids.push(f+""+u);
+    var occ=ids.filter(id=>computeStatus(S.units[id]||{})!=="vacant").length;
+    w.appendChild(h("div",{cls:"floor-hdr"},"الدور "+f+" — "+occ+"/"+UPF));
+    var grid=h("div",{cls:"unit-grid"});
+    ids.forEach(id=>{
+      var u=getUnit(id);var st=computeStatus(u);
+      var cls=st==="late"?"late":st==="expiring"?"expiring":st!=="vacant"?"occupied":"";
+      var lbl=st==="late"?"متأخر":st==="expiring"?"ينتهي":st!=="vacant"?"مؤجر":"شاغر";
+      grid.appendChild(h("div",{cls:"unit-btn "+cls,onClick:()=>set({modal:{type:"unit",uid:id}})},
+        h("div",{cls:"unum"},id),
+        h("div",{cls:"ulbl"},lbl)
+      ));
+    });
+    w.appendChild(grid);
+  }
+  return w;
+}
+
+// ─── CONTRACTS ───
+function rContracts(){
+  var w=h("div",{});
+  var occupied=Object.values(S.units).filter(u=>u.status!=="vacant").sort((a,b)=>a.id.localeCompare(b.id));
+  var vacant=allIds().filter(id=>!S.units[id]||S.units[id].status==="vacant");
+
+  if(!occupied.length)w.appendChild(h("div",{cls:"empty"},"لا توجد عقود نشطة"));
+
+  occupied.forEach(u=>{
+    var ct=getActive(u.id);
+    var st=computeStatus(u);
+    var badgeCls=st==="late"?"bg-red":st==="expiring"?"bg-yellow":"bg-green";
+    var badgeLbl=st==="late"?"متأخر":st==="expiring"?"ينتهي قريباً":"نشط";
+    var card=h("div",{cls:"card",style:{cursor:"pointer"},onClick:()=>set({modal:{type:"unit",uid:u.id}})});
+    card.appendChild(h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"10px"}},
+      h("div",{style:{fontWeight:"800",fontSize:"16px"}},"شقة "+u.id),
+      h("span",{cls:"badge "+badgeCls},badgeLbl)
+    ));
+    card.appendChild(h("div",{cls:"row"},h("span",{cls:"lbl"},"المستأجر"),h("span",{cls:"val"},u.tenant||"—")));
+    card.appendChild(h("div",{cls:"row"},h("span",{cls:"lbl"},"الإيجار"),h("span",{cls:"val",style:{color:"var(--green)"}},fmt(u.rent)+" "+CUR)));
+    if(ct){
+      card.appendChild(h("div",{cls:"row"},h("span",{cls:"lbl"},"بداية العقد"),h("span",{},fd(ct.start))));
+      card.appendChild(h("div",{cls:"row"},h("span",{cls:"lbl"},"نهاية العقد"),h("span",{style:{color:ct.end&&diffDays(ct.end)<=30?"var(--yellow)":""}},fd(ct.end))));
+    }
+    w.appendChild(card);
+  });
+
+  if(vacant.length){
+    w.appendChild(h("div",{style:{color:"var(--muted)",fontSize:"12px",fontWeight:"700",padding:"8px 0"}},"شاغر ("+vacant.length+")"));
+    var vg=h("div",{style:{display:"flex",flexWrap:"wrap",gap:"6px"}});
+    vacant.forEach(id=>vg.appendChild(h("button",{cls:"btn btn-gray btn-sm",onClick:()=>set({modal:{type:"addContract",uid:id}})},id)));
+    w.appendChild(vg);
+  }
+  return w;
+}
+
+// ─── PAYMENTS ───
+function rPayments(){
+  var w=h("div",{});
+  // month nav
+  var ms=h("div",{cls:"month-scroll"});
+  var now=new Date();
+  for(var i=-3;i<=3;i++){
+    var d=new Date(now.getFullYear(),now.getMonth()+i,1);
+    var mk=d.getFullYear()+"-"+pad(d.getMonth()+1);
+    ms.appendChild(h("button",{cls:"mbtn"+(S.mk===mk?" active":""),onClick:(m=>()=>set({mk:m}))(mk)},mkLabel(mk)));
+  }
+  w.appendChild(ms);
+
+  var occ=Object.values(S.units).filter(u=>u.status!=="vacant");
+  var paid=[],unpaid=[];
+  occ.forEach(u=>{
+    var ct=getActive(u.id);
+    var p=ct&&(ct.payments||[]).find(p=>p.mk===S.mk&&p.status==="paid");
+    if(p)paid.push({u,p});else unpaid.push(u);
+  });
+
+  if(unpaid.length){
+    w.appendChild(h("div",{style:{fontWeight:"700",color:"var(--red)",fontSize:"14px",marginBottom:"8px"}},"لم يدفع ("+unpaid.length+")"));
+    unpaid.forEach(u=>{
+      var row=h("div",{cls:"card",style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 14px"}});
+      row.appendChild(h("div",{},
+        h("div",{style:{fontWeight:"800",fontSize:"15px"}},"شقة "+u.id),
+        h("div",{style:{color:"var(--muted)",fontSize:"13px",marginTop:"2px"}},u.tenant||"—")
+      ));
+      row.appendChild(h("div",{style:{textAlign:"left"}},
+        h("div",{style:{color:"var(--yellow)",fontWeight:"700"}},fmt(u.rent)+" "+CUR),
+        h("button",{cls:"btn btn-green btn-sm",style:{marginTop:"6px"},onClick:()=>set({modal:{type:"pay",uid:u.id}})},"تحصيل")
+      ));
+      w.appendChild(row);
+    });
+  }
+
+  if(paid.length){
+    w.appendChild(h("div",{style:{fontWeight:"700",color:"var(--green)",fontSize:"14px",margin:"12px 0 8px"}},"دفع ("+paid.length+")"));
+    paid.forEach(({u,p})=>{
+      var row=h("div",{cls:"card",style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 14px"}});
+      row.appendChild(h("div",{},
+        h("div",{style:{fontWeight:"800",fontSize:"15px"}},"شقة "+u.id),
+        h("div",{style:{color:"var(--muted)",fontSize:"13px",marginTop:"2px"}},u.tenant||"—")
+      ));
+      row.appendChild(h("div",{style:{textAlign:"left"}},
+        h("div",{style:{color:"var(--green)",fontWeight:"700"}},fmt(p.amount)+" "+CUR),
+        h("div",{style:{fontSize:"11px",color:"var(--muted)"}},fd(p.date))
+      ));
+      w.appendChild(row);
+    });
+  }
+
+  if(!occ.length)w.appendChild(h("div",{cls:"empty"},"لا توجد شقق مؤجرة"));
+  return w;
+}
+
+// ─── MODALS ───
+function rModal(){
+  var m=S.modal;
+  var ov=h("div",{cls:"modal-overlay",onClick:e=>{if(e.target===ov)set({modal:null});}});
+  var box=h("div",{cls:"modal"});
+  ov.appendChild(box);
+  if(m.type==="unit")buildUnit(box,m.uid);
+  else if(m.type==="addContract"||m.type==="editContract")buildContractForm(box,m);
+  else if(m.type==="pay")buildPayForm(box,m.uid);
+  return ov;
+}
+
+function mTitle(box,title){
+  box.appendChild(h("div",{cls:"modal-title"},title,h("button",{cls:"close-btn",onClick:()=>set({modal:null})},"×")));
+}
+
+// Unit detail
+function buildUnit(box,id){
+  var u=getUnit(id);var ct=getActive(id);var st=computeStatus(u);
+  mTitle(box,"شقة "+id);
+  if(u.status==="vacant"){
+    box.appendChild(h("div",{cls:"empty"},"شاغرة"));
+    box.appendChild(h("button",{cls:"btn btn-green",onClick:()=>set({modal:{type:"addContract",uid:id}})},"+ إضافة عقد"));
+    return;
+  }
+  var badgeCls=st==="late"?"bg-red":st==="expiring"?"bg-yellow":"bg-green";
+  var badgeLbl=st==="late"?"متأخر":st==="expiring"?"ينتهي قريباً":"نشط";
+  box.appendChild(h("div",{style:{marginBottom:"12px"}},h("span",{cls:"badge "+badgeCls},badgeLbl)));
+  box.appendChild(h("div",{cls:"row"},h("span",{cls:"lbl"},"المستأجر"),h("span",{cls:"val"},u.tenant||"—")));
+  box.appendChild(h("div",{cls:"row"},h("span",{cls:"lbl"},"الإيجار"),h("span",{cls:"val",style:{color:"var(--green)"}},fmt(u.rent)+" "+CUR)));
+  if(ct){
+    box.appendChild(h("div",{cls:"row"},h("span",{cls:"lbl"},"بداية العقد"),h("span",{},fd(ct.start))));
+    box.appendChild(h("div",{cls:"row"},h("span",{cls:"lbl"},"نهاية العقد"),h("span",{},fd(ct.end))));
+  }
+  // current month
+  var cp=ct&&(ct.payments||[]).find(p=>p.mk===S.mk&&p.status==="paid");
+  box.appendChild(h("div",{style:{marginTop:"12px"}}));
+  if(cp)box.appendChild(h("div",{cls:"alert alert-green"},"✅ دفع "+mkLabel(S.mk)+" — "+fmt(cp.amount)+" "+CUR));
+  else{
+    box.appendChild(h("div",{cls:"alert alert-yellow"},"⏳ لم يدفع "+mkLabel(S.mk)));
+    box.appendChild(h("button",{cls:"btn btn-green",onClick:()=>set({modal:{type:"pay",uid:id}})},"💰 تسجيل الإيجار"));
+  }
+  box.appendChild(h("button",{cls:"btn btn-gray",onClick:()=>set({modal:{type:"editContract",uid:id}})},"✏️ تعديل العقد"));
+  box.appendChild(h("button",{cls:"btn btn-red",onClick:async()=>{
+    if(!confirm("إنهاء عقد شقة "+id+"؟"))return;
+    var updated={...u,status:"vacant",tenant:"",rent:0};
+    await saveUnit(updated);set({modal:null});
+  }},"🚪 إنهاء العقد"));
+}
+
+// Contract form
+function buildContractForm(box,m){
+  var id=m.uid||"";var ct=m.type==="editContract"?getActive(id):null;
+  mTitle(box,m.type==="editContract"?"تعديل العقد":"عقد جديد");
+  var selEl=null;
+  if(!id){
+    box.appendChild(h("div",{cls:"field-lbl"},"رقم الشقة"));
+    selEl=h("select",{});
+    selEl.appendChild(h("option",{value:""},"اختر الشقة"));
+    allIds().filter(i=>!S.units[i]||S.units[i].status==="vacant").forEach(i=>selEl.appendChild(h("option",{value:i},i)));
+    box.appendChild(selEl);
+  } else {
+    box.appendChild(h("div",{style:{fontWeight:"700",fontSize:"15px",marginBottom:"12px",color:"var(--blue)"}},"شقة "+id));
+  }
+  var fName=h("input",{type:"text",placeholder:"اسم المستأجر"});
+  var fStart=h("input",{type:"date"});
+  var fEnd=h("input",{type:"date"});
+  var fRent=h("input",{type:"number",placeholder:"الإيجار الشهري"});
+  if(ct){fName.value=ct.tenant||"";fStart.value=ct.start||"";fEnd.value=ct.end||"";fRent.value=ct.rent||"";}
+  else if(id){var u2=getUnit(id);fName.value=u2.tenant||"";fRent.value=u2.rent||"";fStart.value=today();}
+
+  [["اسم المستأجر *",fName],["بداية العقد *",fStart],["نهاية العقد *",fEnd],["الإيجار الشهري ("+CUR+") *",fRent]].forEach(([l,el])=>{
+    box.appendChild(h("div",{cls:"field-lbl"},l));
+    box.appendChild(el);
+  });
+
+  box.appendChild(h("button",{cls:"btn btn-green",onClick:async()=>{
+    var finalId=id||(selEl&&selEl.value)||"";
+    if(!finalId||!fName.value.trim()||!fStart.value||!fEnd.value||!fRent.value){alert("يرجى ملء جميع الحقول *");return;}
+    var u={...getUnit(finalId),id:finalId,label:finalId,status:"occupied",tenant:fName.value.trim(),rent:Number(fRent.value)};
+    var newCt={tenant:fName.value.trim(),start:fStart.value,end:fEnd.value,rent:Number(fRent.value),dueDay:1,payments:[],createdAt:new Date().toISOString()};
+    var cs=getContracts(finalId);
+    if(m.type==="editContract"&&cs.length)cs[cs.length-1]={...cs[cs.length-1],...newCt,payments:cs[cs.length-1].payments||[]};
+    else cs=[...cs,newCt];
+    await saveUnit(u);await saveHist(finalId,cs);set({modal:null});
+  }},m.type==="editContract"?"💾 حفظ":"✅ إضافة العقد"));
+}
+
+// Pay form
+function buildPayForm(box,id){
+  var u=getUnit(id);
+  mTitle(box,"تسجيل إيجار — شقة "+id);
+  box.appendChild(h("div",{cls:"row"},h("span",{cls:"lbl"},"المستأجر"),h("span",{cls:"val"},u.tenant||"—")));
+  box.appendChild(h("div",{cls:"row"},h("span",{cls:"lbl"},"الإيجار المستحق"),h("span",{style:{color:"var(--green)",fontWeight:"700"}},fmt(u.rent)+" "+CUR)));
+  box.appendChild(h("div",{style:{marginBottom:"12px"}}));
+  var fAmt=h("input",{type:"number",placeholder:"المبلغ",value:u.rent||""});
+  var fDate=h("input",{type:"date",value:today()});
+  [["المبلغ ("+CUR+")",fAmt],["تاريخ الاستلام",fDate]].forEach(([l,el])=>{box.appendChild(h("div",{cls:"field-lbl"},l));box.appendChild(el);});
+  box.appendChild(h("button",{cls:"btn btn-green",onClick:async()=>{
+    if(!fAmt.value||!fDate.value){alert("يرجى ملء الحقول");return;}
+    var p={id:uid2(),mk:S.mk,amount:Number(fAmt.value),date:fDate.value,status:"paid"};
+    var cs=getContracts(id);if(!cs.length)return;
+    cs[cs.length-1].payments=[...(cs[cs.length-1].payments||[]).filter(x=>!(x.mk===S.mk&&x.status==="paid")),p];
+    await saveHist(id,cs);set({modal:null});
+  }},"✅ تأكيد الاستلام"));
+}
+
+// ─── REPORT ───
+function rReport(){
+  var w=h("div",{});
+  var now=new Date();
+  var selYear=S.reportYear||now.getFullYear();
+
+  // Year selector
+  var ys=h("div",{style:{display:"flex",gap:"8px",marginBottom:"14px",alignItems:"center"}});
+  ys.appendChild(h("button",{cls:"btn btn-gray btn-sm",onClick:()=>set({reportYear:selYear-1})},"◀"));
+  ys.appendChild(h("div",{style:{flex:"1",textAlign:"center",fontWeight:"800",fontSize:"18px"}},String(selYear)));
+  ys.appendChild(h("button",{cls:"btn btn-gray btn-sm",onClick:()=>set({reportYear:selYear+1})},"▶"));
+  w.appendChild(ys);
+
+  // Calc yearly data
+  var totalCollected=0, totalExpected=0;
+  var monthlyData=[];
+
+  for(var m=1;m<=12;m++){
+    var mk=selYear+"-"+pad(m);
+    var monthCollected=0, monthExpected=0, paidCount=0, totalUnits=0;
+    Object.values(S.units).forEach(function(u){
+      if(u.status==="vacant") return;
+      var ct=getActive(u.id);
+      if(!ct) return;
+      // check if contract was active this month
+      var mStart=new Date(selYear,m-1,1);
+      var mEnd=new Date(selYear,m,0);
+      var cStart=ct.start?new Date(ct.start):null;
+      var cEnd=ct.end?new Date(ct.end):null;
+      if(cStart&&cEnd&&(cStart>mEnd||cEnd<mStart)) return;
+      totalUnits++;
+      monthExpected+=u.rent||0;
+      var p=(ct.payments||[]).find(function(p){return p.mk===mk&&p.status==="paid";});
+      if(p){monthCollected+=p.amount||u.rent||0;paidCount++;}
+    });
+    monthlyData.push({m,mk,label:MONTHS[m-1],collected:monthCollected,expected:monthExpected,paid:paidCount,total:totalUnits});
+    totalCollected+=monthCollected;
+    totalExpected+=monthExpected;
+  }
+
+  // Summary cards
+  var occ=Object.values(S.units).filter(u=>u.status!=="vacant").length;
+  w.appendChild(h("div",{cls:"stat-grid"},
+    h("div",{cls:"stat-box"},h("div",{cls:"num",style:{color:"var(--green)"}},fmt(totalCollected)),h("div",{cls:"lbl2"},"إجمالي المحصّل "+CUR)),
+    h("div",{cls:"stat-box"},h("div",{cls:"num",style:{color:"var(--muted)"}},fmt(totalExpected-totalCollected)),h("div",{cls:"lbl2"},"إجمالي المتبقي "+CUR)),
+    h("div",{cls:"stat-box"},h("div",{cls:"num"},String(occ)),h("div",{cls:"lbl2"},"شقة مؤجرة")),
+    h("div",{cls:"stat-box"},h("div",{cls:"num",style:{color:"var(--blue)"}},fmt(totalExpected)),h("div",{cls:"lbl2"},"الإيجار السنوي المتوقع "+CUR))
+  ));
+
+  // Monthly breakdown
+  w.appendChild(h("div",{style:{fontWeight:"800",fontSize:"14px",marginBottom:"10px",color:"var(--muted)"}},"تفصيل شهري"));
+
+  monthlyData.forEach(function(md){
+    var pct=md.expected>0?Math.round(md.collected/md.expected*100):0;
+    var card=h("div",{cls:"card",style:{padding:"12px 14px",marginBottom:"8px"}});
+    card.appendChild(h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"8px"}},
+      h("div",{style:{fontWeight:"700",fontSize:"14px"}},md.label),
+      h("div",{style:{fontSize:"12px",color:pct>=100?"var(--green)":pct>0?"var(--yellow)":"var(--muted)"}},pct+"%")
+    ));
+    // progress bar
+    var pb=h("div",{style:{background:"#222",borderRadius:"99px",height:"6px",overflow:"hidden",marginBottom:"8px"}});
+    pb.appendChild(h("div",{style:{height:"100%",borderRadius:"99px",width:pct+"%",background:pct>=100?"var(--green)":pct>0?"var(--yellow)":"var(--red)",transition:"width .3s"}}));
+    card.appendChild(pb);
+    card.appendChild(h("div",{style:{display:"flex",justifyContent:"space-between",fontSize:"13px"}},
+      h("span",{style:{color:"var(--green)"}},fmt(md.collected)+" "+CUR),
+      h("span",{style:{color:"var(--muted)"}},md.paid+"/"+md.total+" دفعوا"),
+      h("span",{style:{color:"var(--red)"}},md.collected<md.expected?"-"+fmt(md.expected-md.collected)+" "+CUR:"✅")
+    ));
+    w.appendChild(card);
+  });
+
+  // Print button
+  w.appendChild(h("button",{cls:"btn btn-gray",style:{marginTop:"8px"},onClick:function(){
+    var rows=monthlyData.map(function(md){
+      var pct=md.expected>0?Math.round(md.collected/md.expected*100):0;
+      return "<tr><td>"+md.label+"</td><td>"+fmt(md.expected)+"</td><td style='color:green'>"+fmt(md.collected)+"</td><td style='color:red'>"+fmt(md.expected-md.collected)+"</td><td>"+pct+"%</td></tr>";
+    }).join("");
+    var pw=window.open("","_blank");
+    pw.document.write("<!DOCTYPE html><html dir='rtl'><head><meta charset='UTF-8'><style>body{font-family:Tajawal,Arial,sans-serif;padding:20px;direction:rtl}h2{text-align:center;margin-bottom:16px}table{width:100%;border-collapse:collapse;font-size:14px}th{background:#333;color:#fff;padding:8px}td{border:1px solid #ddd;padding:8px;text-align:center}tfoot td{font-weight:800;background:#f5f5f5}@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap')</style></head><body><h2>🏢 التقرير السنوي — "+selYear+"</h2><table><thead><tr><th>الشهر</th><th>المتوقع</th><th>المحصّل</th><th>المتبقي</th><th>نسبة التحصيل</th></tr></thead><tbody>"+rows+"</tbody><tfoot><tr><td>الإجمالي</td><td>"+fmt(totalExpected)+"</td><td style='color:green'>"+fmt(totalCollected)+"</td><td style='color:red'>"+fmt(totalExpected-totalCollected)+"</td><td>"+(totalExpected>0?Math.round(totalCollected/totalExpected*100):0)+"%</td></tr></tfoot></table><br><div style='text-align:center'><button onclick='window.print()' style='padding:10px 30px;font-size:14px;cursor:pointer'>🖨️ طباعة</button></div></body></html>");
+    pw.document.close();
+  }},"🖨️ طباعة التقرير"));
+
+  return w;
+}
+
+loadData();
+</script>
+</body>
+</html>
